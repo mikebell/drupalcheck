@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "mikebell\\drupalcheck\\": "src/mikebell/drupalcheck"
+            "mikebell\\drupalcheck\\": "src"
         }
     }
 }
