@@ -1,0 +1,18 @@
+{
+    "name": "mikebell/drupal-check",
+    "description": "Simple library to determine if a site is Drupal.",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Joe Shindelar",
+            "email": "eojthebrave@gmail.com"
+        },
+        {
+            "name": "Mike Bell",
+            "email": "hello@mikebell.io"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^6.2"
+    }
+}
