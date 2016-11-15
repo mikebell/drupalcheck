@@ -1,5 +1,5 @@
 {
-    "name": "mikebell/drupal-check",
+    "name": "mikebell/drupalcheck",
     "description": "Simple library to determine if a site is Drupal.",
     "type": "library",
     "authors": [

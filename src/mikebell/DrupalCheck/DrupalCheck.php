@@ -1,6 +1,6 @@
 <?php
 
-namespace mikebell\DrupalCheck;
+namespace mikebell\drupalcheck;
 
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Client;
