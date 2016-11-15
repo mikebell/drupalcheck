@@ -6,7 +6,7 @@ Based off the great work of [eojthebrave](eojthebrave) on [isthissitebuildwithdr
 
 ## Install
 
-```composer require mikebell/DrupalCheck```
+```composer require mikebell/drupalcheck```
 
 ## Usage
 
