@@ -5,6 +5,7 @@ namespace mikebell\drupalcheck;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 
 /**
  * Provides a set of tests for checking if a site is built with Drupal and a
@@ -59,6 +60,10 @@ class DrupalCheck {
       return false;
     }
     catch (ConnectException $e) {
+      $this->errors[] = $e;
+      return false;
+    }
+    catch (RequestException $e) {
       $this->errors[] = $e;
       return false;
     }
