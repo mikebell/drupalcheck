@@ -4,13 +4,14 @@ namespace mikebell\drupalcheck;
 
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 
 /**
  * Provides a set of tests for checking if a site is built with Drupal and a
  * simple runner for those tests.
  */
 class DrupalCheck {
-  var $url, $primary_response;
+  var $url, $primary_response, $res;
   var $is_drupal = FALSE;
   var $results, $errors = array();
   /**
@@ -51,19 +52,18 @@ class DrupalCheck {
    */
   protected function getPage() {
     try {
-      $this->primary_response = $this->guzzle->get($this->url);
+      $this->primary_response = $this->guzzle->request('GET', $this->url, ['timeout' => 5, 'connect_timeout' => 5]);
     }
     catch (BadResponseException $e) {
-      // Page doesn't even exist just bail out.
-      return FALSE;
+      $this->errors[] = $e;
+      return false;
     }
-    // TODO Figure out what to do with this.
-//    catch (CurlException $e) {
-//      // cURL error like Bad URL or something along those lines.
-//      $this->errors[] = $e->getMessage();
-//      return FALSE;
-//    }
-    return TRUE;
+    catch (ConnectException $e) {
+      $this->errors[] = $e;
+      return false;
+    }
+
+    return true;
   }
   /**
    * Test One: Check for Dries' birthday in 'Expires' header.
