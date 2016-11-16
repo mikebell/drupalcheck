@@ -127,6 +127,11 @@ class DrupalCheck {
       catch (BadResponseException $e) {
         // Can't find the file.
         $this->results['misc/drupal.js'] = 'failed';
+        $this->errors[] = $e;
+      }
+      catch (RequestException $e) {
+        $this->results['misc/drupal.js'] = 'failed';
+        $this->errors[] = $e;
       }
       $js_path = dirname($js_path);
       // Allow for bailing out after a single iteration when we're starting
