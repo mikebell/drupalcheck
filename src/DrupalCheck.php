@@ -111,35 +111,29 @@ class DrupalCheck {
     // Check for the existence of misc/drupal.js, this is a pretty good giveaway.
     $url_parts = parse_url($this->url);
     $base_url = $url_parts['scheme'] . '://' . $url_parts['host'];
-    $js_path = isset($url_parts['path']) ? $url_parts['path'] : '';
-    while ($js_path != '/') {
-      try {
-        $response = $this->guzzle->head($base_url . $js_path . '/misc/drupal.js');
-        if ($response->getHeader('Content Type') == 'application/x-javascript') {
-          $this->is_drupal = TRUE;
-          $this->results['misc/drupal.js'] = 'passed';
-          return TRUE;
-        }
-        else {
-          $this->results['misc/drupal.js'] = 'failed';
-        }
+
+    // If we're at root then try and find misc/drupal.js
+    try {
+      $response = $this->guzzle->head($base_url . '/misc/drupal.js');
+      if ($response->getStatusCode() == 200) {
+        $this->is_drupal = TRUE;
+        $this->results['misc/drupal.js'] = 'passed';
+        return TRUE;
       }
-      catch (BadResponseException $e) {
-        // Can't find the file.
+      else {
         $this->results['misc/drupal.js'] = 'failed';
-        $this->errors[] = $e;
-      }
-      catch (RequestException $e) {
-        $this->results['misc/drupal.js'] = 'failed';
-        $this->errors[] = $e;
-      }
-      $js_path = dirname($js_path);
-      // Allow for bailing out after a single iteration when we're starting
-      // tests from the root URL.
-      if ($js_path == '') {
-        break;
       }
     }
+    catch (BadResponseException $e) {
+      // Can't find the file.
+      $this->results['misc/drupal.js'] = 'failed';
+      $this->errors[] = $e;
+    }
+    catch (RequestException $e) {
+      $this->results['misc/drupal.js'] = 'failed';
+      $this->errors[] = $e;
+    }
+
     $this->results['misc/drupal.js'] = 'failed';
     return false;
   }
