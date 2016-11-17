@@ -1,4 +1,4 @@
 language: php
 php:
   - '7.0'
-script: phpunit tests/DrupalCheckTest.php
+script: phpunit tests/DrupalCheckTests.php
