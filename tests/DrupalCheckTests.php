@@ -20,4 +20,12 @@ class DrupalCheckTest extends TestCase {
     $this->assertContains('passed', $site->results['x-generator header'], 'x-generator header is set to Drupal x');
     $this->assertContains('passed', $site->results['x-drupal-cache header'], 'x-drupal-cache header exists');
   }
+
+  public function testVersion() {
+    $site = new DrupalCheck('https://drupal.org');
+
+    $site->isDrupal();
+
+    $this->assertContains('7', $site->version);
+  }
 }

@@ -12,7 +12,7 @@ use GuzzleHttp\Exception\RequestException;
  * simple runner for those tests.
  */
 class DrupalCheck {
-  var $url, $primary_response, $res;
+  var $url, $primary_response, $res, $version;
   var $is_drupal = FALSE;
   var $results, $errors = array();
   /**
@@ -144,9 +144,14 @@ class DrupalCheck {
    * @return bool
    */
   protected  function testFour() {
-    if (strpos($this->primary_response->getHeaderLine('X-Generator'), 'Drupal') !== false) {
+    if (strpos($generator = $this->primary_response->getHeaderLine('X-Generator'), 'Drupal') !== false) {
       $this->is_drupal = TRUE;
       $this->results['x-generator header'] = 'passed';
+
+      // If this test passes then we can get the Drupal version as well.
+      preg_match('/\d/', $generator, $matches);
+      $this->version = $matches[0];
+
       return TRUE;
     }
     else {
