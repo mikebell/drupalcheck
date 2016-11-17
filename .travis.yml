@@ -1,4 +1,4 @@
 language: php
 php:
   - '7.0'
-script: phpunit --bootstrap vendor/autoload.php tests/DrupalCheckTests.php
+script: composer install && phpunit --bootstrap vendor/autoload.php tests/DrupalCheckTests.php
