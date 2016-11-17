@@ -140,7 +140,8 @@ class DrupalCheck {
         break;
       }
     }
-    return FALSE;
+    $this->results['misc/drupal.js'] = 'failed';
+    return false;
   }
 
   /**
