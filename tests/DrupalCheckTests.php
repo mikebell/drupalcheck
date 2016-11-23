@@ -19,6 +19,7 @@ class DrupalCheckTest extends TestCase {
     $this->assertContains('passed', $site->results['misc/drupal.js'], 'Contains misc/drupal.js');
     $this->assertContains('passed', $site->results['x-generator header'], 'x-generator header is set to Drupal x');
     $this->assertContains('passed', $site->results['x-drupal-cache header'], 'x-drupal-cache header exists');
+    $this->assertContains('passed', $site->results['body-meta-generator'], 'generator meta tag is set to Drupal x');
   }
 
   public function testVersion() {
