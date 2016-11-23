@@ -1,8 +1,10 @@
 #DrupalCheck
 
+![Build Status](https://travis-ci.org/mikebell/drupalcheck.svg?branch=master)
+
 A simple PHP library to determine if a site is Drupal or not.
- 
-Based off the great work of [eojthebrave](eojthebrave) on [isthissitebuildwithdrupal.com](https://github.com/eojthebrave/isthissitebuiltwithdrupal_com).
+
+Based off the great work of [eojthebrave](https://github.com/eojthebrave) on [isthissitebuildwithdrupal.com](https://github.com/eojthebrave/isthissitebuiltwithdrupal_com).
 
 ## Install
 
