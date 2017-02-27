@@ -6,6 +6,10 @@ use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\TransferStats;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Provides a set of tests for checking if a site is built with Drupal and a
@@ -33,7 +37,7 @@ class DrupalCheck {
    */
   public function isDrupal() {
     if ($this->getPage()) {
-      $tests = array('testOne', 'testTwo', 'testThree', 'testFour', 'testFive', 'testSix');
+      $tests = array('testOne', 'testTwo', 'testThree', 'testFour', 'testFive');
       foreach ($tests as $test) {
         $this->$test();
       }
@@ -109,33 +113,30 @@ class DrupalCheck {
    */
   protected function testThree() {
     // Check for the existence of misc/drupal.js, this is a pretty good giveaway.
-    $url_parts = parse_url($this->url);
-    $base_url = $url_parts['scheme'] . '://' . $url_parts['host'];
+    $uri =  new Uri($this->url);
+    $base_url = $uri->withPath('');
+    // Try to find misc/drupal.js
+    $path = '/misc/drupal.js';
 
-    // If we're at root then try and find misc/drupal.js
-    try {
-      $response = $this->guzzle->head($base_url . '/misc/drupal.js');
-      if ($response->getStatusCode() == 200) {
-        $this->is_drupal = TRUE;
-        $this->results['misc/drupal.js'] = 'passed';
-        return TRUE;
-      }
-      else {
-        $this->results['misc/drupal.js'] = 'failed';
-      }
-    }
-    catch (BadResponseException $e) {
-      // Can't find the file.
-      $this->results['misc/drupal.js'] = 'failed';
-      $this->errors[] = $e;
-    }
-    catch (RequestException $e) {
-      $this->results['misc/drupal.js'] = 'failed';
-      $this->errors[] = $e;
+    // BUT (!) we need to handle redirects, so we don't get false positives
+    $r = $this->requestHandleRedirect($base_url, $path, 'HEAD');
+    // Effective URLs and HTTP status codes of redirect history
+    $guzzle_effective_url = $r->getHeader('X-Guzzle-Effective-Url');
+    $guzzle_effective_url_status = $r->getHeader('X-Guzzle-Effective-Url-Status');
+    // get URL string and HTTP status code of last effective URL, after redirects
+    $last_effective_url = end($guzzle_effective_url);
+    $last_effective_url_status = end($guzzle_effective_url_status);
+    // Make a url string into Psr7 Uri object
+    $last_effective_uri = new Uri($last_effective_url);
+    if ($last_effective_uri->getPath() == $path && $last_effective_url_status == 200) {
+      $this->is_drupal = TRUE;
+      $this->results['misc/drupal.js'] = 'passed';
+      return TRUE;
     }
 
     $this->results['misc/drupal.js'] = 'failed';
-    return false;
+    return FALSE;
+
   }
 
   /**
@@ -161,7 +162,7 @@ class DrupalCheck {
   }
 
   /**
-   * Test Five: Check for Drupal in X-Drupal-Cache header.
+   * Test Five: Check for Drupal in X-Generator header.
    *
    * @return bool
    */
@@ -179,27 +180,63 @@ class DrupalCheck {
   }
 
   /**
-   * Test Six: check for generator in body content.
+   * Make a request that handles following redirects.
    *
-   * @return bool
+   * This is necessary where the redirect does not forward the requested path also.
+   *
+   * @param string|Uri $url
+   * @param null $path
+   * @param string $method
+   * @return DrupalCheckRequestResponse|ResponseInterface
    */
-  protected function testSix() {
-    // Scan for meta tag "generator".
-    $body = $this->primary_response->getBody();
-    $body = (string) $body;
-
-    preg_match('/<meta name="generator" content="Drupal .*"/', $body, $matches);
-
-    if ($matches) {
-      preg_match('/\d/', $matches[0], $drupal);
-      $this->version = $drupal[0];
-      $this->is_drupal = TRUE;
-      $this->results['body-meta-generator'] = 'passed';
-      return TRUE;
+  private function requestHandleRedirect($url, $path = NULL, $method = 'GET') {
+    // Create an empty response object
+    $return = new DrupalCheckRequestResponse();
+    // The URL may be a Uri object or a string.
+    if ($url instanceof Uri == FALSE) {
+      $url = new Uri($url);
     }
-    else {
-      $this->results['body-meta-generator'] = 'failed';
-      return false;
+    $effective_url = $url->withPath($path);
+
+    try {
+
+      $stack = HandlerStack::create();
+      $stack->push(DrupalCheckEffectiveUrlMiddleware::middleware());
+
+      $client = new Client([
+        'handler' => $stack,
+        'allow_redirects' => [
+          'max'             => 5,
+          'strict'          => FALSE,
+          'referer'         => TRUE,
+          'protocols'       => ['http', 'https'],
+          'track_redirects' => TRUE,
+        ],
+        'on_stats' => function (TransferStats $stats) use (&$tStats) {
+          $tStats = $stats;
+        }
+      ]);
+
+      $response = $client->request($method, $effective_url->__toString());
+
+      return $response;
+
+    }
+    catch (BadResponseException $e) {
+      $return->addResponseField('location', $effective_url);
+      $return->addResponseField('response', $e->getResponse());
+      $return->addResponseField('error', TRUE);
+      $return->addResponseField('code', $e->getCode());
+      $return->addResponseField('reason', 'BadResponseException');
+      return $return;
+    }
+    catch (RequestException $e) {
+      $return->addResponseField('location', $effective_url);
+      $return->addResponseField('response', $e->getResponse());
+      $return->addResponseField('error', TRUE);
+      $return->addResponseField('code', $e->getCode());
+      $return->addResponseField('reason', 'RequestException');
+      return $return;
     }
   }
 }
