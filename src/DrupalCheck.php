@@ -16,7 +16,7 @@ use Psr\Http\Message\ResponseInterface;
  * simple runner for those tests.
  */
 class DrupalCheck {
-  var $url, $primary_response, $res, $version;
+  var $url, $primary_response, $res, $version = NULL;
   var $is_drupal = FALSE;
   var $results, $errors = array();
   /**
@@ -35,7 +35,7 @@ class DrupalCheck {
    * @return bool
    *   TRUE if $this->url passes any of the tests otherwise FALSE.
    */
-  public function isDrupal() {
+  public function testDrupal() {
     if ($this->getPage()) {
       $tests = array('testOne', 'testTwo', 'testThree', 'testFour', 'testFive');
       foreach ($tests as $test) {
@@ -47,6 +47,37 @@ class DrupalCheck {
     }
     return FALSE;
   }
+
+  /**
+   * Is it a Drupal site?
+   *
+   * @return bool
+   */
+  public function getIsDrupal() {
+    return $this->is_drupal;
+  }
+
+  /**
+   * Alias of $this->getIsDrupal().
+   *
+   * @return bool
+   */
+  public function isDrupal() {
+    return $this->getIsDrupal();
+  }
+
+  /**
+   * Get the Drupal version discovered by tests, if possible.
+   *
+   * @return int|null
+   */
+  public function getVersion() {
+    if ($this->getIsDrupal()) {
+      return $this->version;
+    }
+    return NULL;
+  }
+
   /**
    * Helper method, loads the content of the page at $this->url for other tests.
    *
@@ -120,18 +151,25 @@ class DrupalCheck {
 
     // BUT (!) we need to handle redirects, so we don't get false positives
     $r = $this->requestHandleRedirect($base_url, $path, 'HEAD');
-    // Effective URLs and HTTP status codes of redirect history
-    $guzzle_effective_url = $r->getHeader('X-Guzzle-Effective-Url');
-    $guzzle_effective_url_status = $r->getHeader('X-Guzzle-Effective-Url-Status');
-    // get URL string and HTTP status code of last effective URL, after redirects
-    $last_effective_url = end($guzzle_effective_url);
-    $last_effective_url_status = end($guzzle_effective_url_status);
-    // Make a url string into Psr7 Uri object
-    $last_effective_uri = new Uri($last_effective_url);
-    if ($last_effective_uri->getPath() == $path && $last_effective_url_status == 200) {
-      $this->is_drupal = TRUE;
-      $this->results['misc/drupal.js'] = 'passed';
-      return TRUE;
+    if (!$r->getResponseField('error')) {
+      /** @var ResponseInterface $response */
+      $response = $r->getResponseField('response');
+      // Effective URLs and HTTP status codes of redirect history
+      $guzzle_effective_url = $response->getHeader('X-Guzzle-Effective-Url');
+      $guzzle_effective_url_status = $response->getHeader('X-Guzzle-Effective-Url-Status');
+      // get URL string and HTTP status code of last effective URL, after redirects
+      $last_effective_url = end($guzzle_effective_url);
+      $last_effective_url_status = end($guzzle_effective_url_status);
+      // Make a url string into Psr7 Uri object
+      $last_effective_uri = new Uri($last_effective_url);
+      if ($last_effective_uri->getPath() == $path && $last_effective_url_status == 200) {
+        $this->is_drupal = TRUE;
+        $this->results['misc/drupal.js'] = 'passed';
+        return TRUE;
+      }
+    }
+    else {
+      drupal_set_message(t('Problem processing @site. Error: @message', ['@site' => $this->url, '@message' => $r->getResponseField('code') . ': ' . $r->getResponseField('reason')]));
     }
 
     $this->results['misc/drupal.js'] = 'failed';
@@ -187,7 +225,7 @@ class DrupalCheck {
    * @param string|Uri $url
    * @param null $path
    * @param string $method
-   * @return DrupalCheckRequestResponse|ResponseInterface
+   * @return DrupalCheckRequestResponse
    */
   private function requestHandleRedirect($url, $path = NULL, $method = 'GET') {
     // Create an empty response object
@@ -219,7 +257,12 @@ class DrupalCheck {
 
       $response = $client->request($method, $effective_url->__toString());
 
-      return $response;
+      $return->addResponseField('location', $effective_url);
+      $return->addResponseField('response', $response);
+      $return->addResponseField('error', FALSE);
+      $return->addResponseField('code', $response->getStatusCode());
+
+      return $return;
 
     }
     catch (BadResponseException $e) {
