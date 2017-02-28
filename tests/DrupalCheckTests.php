@@ -28,6 +28,6 @@ class DrupalCheckTest extends TestCase {
 
     $site->isDrupal();
 
-    $this->assertContains('7', $site->getVersion());
+    $this->assertContains('7', (string) $site->getVersion());
   }
 }
