@@ -37,7 +37,7 @@ class DrupalCheck {
    */
   public function testDrupal() {
     if ($this->getPage()) {
-      $tests = array('testOne', 'testTwo', 'testThree', 'testFour', 'testFive');
+      $tests = array('testOne', 'testTwo', 'testThree', 'testFour', 'testFive', 'testSix');
       foreach ($tests as $test) {
         $this->$test();
       }
@@ -215,6 +215,29 @@ class DrupalCheck {
       $this->results['x-drupal-cache header'] = 'failed';
     }
     return FALSE;
+  }
+
+  /**
+   * Test Six: check for generator in body content.
+   *
+   * @return bool
+   */
+  protected function testSix() {
+    // Scan for meta tag "generator".
+    $body = $this->primary_response->getBody();
+    $body = (string) $body;
+    preg_match('/<meta name="generator" content="Drupal .*"/', $body, $matches);
+    if ($matches) {
+      preg_match('/\d/', $matches[0], $drupal);
+      $this->version = $drupal[0];
+      $this->is_drupal = TRUE;
+      $this->results['body-meta-generator'] = 'passed';
+      return TRUE;
+    }
+    else {
+      $this->results['body-meta-generator'] = 'failed';
+      return false;
+    }
   }
 
   /**
