@@ -11,8 +11,7 @@ class DrupalCheckTest extends TestCase {
 
   public function testisDrupal() {
     $site = new DrupalCheck('https://drupal.org');
-
-    $site->isDrupal();
+    $site->testDrupal();
 
     $this->assertContains('passed', $site->results['expires header'], 'Expires header is Dries birthday');
     $this->assertContains('passed', $site->results['drupal.settings'], 'Contains drupal.settings');
@@ -24,9 +23,8 @@ class DrupalCheckTest extends TestCase {
 
   public function testVersion() {
     $site = new DrupalCheck('https://drupal.org');
+    $site->testDrupal();
 
-    $site->isDrupal();
-
-    $this->assertContains('7', $site->version);
+    $this->assertContains('7', $site->getVersion());
   }
 }
