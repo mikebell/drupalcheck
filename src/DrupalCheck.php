@@ -79,6 +79,15 @@ class DrupalCheck {
   }
 
   /**
+   * Get the test results array.
+   *
+   * @return array
+   */
+  public function getResults() {
+    return $this->results;
+  }
+
+  /**
    * Helper method, loads the content of the page at $this->url for other tests.
    *
    * This also has the side effect of checking for a 4** or 5** error and
