@@ -162,7 +162,7 @@ class DrupalCheck {
       $last_effective_url_status = end($guzzle_effective_url_status);
       // Make a url string into Psr7 Uri object
       $last_effective_uri = new Uri($last_effective_url);
-      if ($last_effective_uri->getPath() == $path && $last_effective_url_status == 200) {
+      if (!in_array('ASP.NET', $response->getHeader('X-Powered-By')) && $last_effective_uri->getPath() == $path && $last_effective_url_status == 200) {
         $this->is_drupal = TRUE;
         $this->results['misc/drupal.js'] = 'passed';
         return TRUE;
