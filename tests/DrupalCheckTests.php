@@ -24,9 +24,10 @@ class DrupalCheckTest extends TestCase {
 
   public function testVersion() {
     $site = new DrupalCheck('https://drupal.org');
+    $site->testDrupal();
 
     $site->isDrupal();
 
-    $this->assertContains('7', $site->version);
+    $this->assertContains('7', $site->getVersion());
   }
 }
