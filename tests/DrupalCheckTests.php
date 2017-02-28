@@ -11,6 +11,7 @@ class DrupalCheckTest extends TestCase {
 
   public function testisDrupal() {
     $site = new DrupalCheck('https://drupal.org');
+    $site->testDrupal();
 
     $site->isDrupal();
 
