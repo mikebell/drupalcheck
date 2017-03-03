@@ -10,6 +10,10 @@
         {
             "name": "Mike Bell",
             "email": "hello@mikebell.io"
+        },
+        {
+            "name": "Joe Baker",
+            "email": "joe.baker@weareconvivio.com"
         }
     ],
     "require": {
