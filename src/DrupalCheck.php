@@ -54,7 +54,7 @@ class DrupalCheck {
    * @return bool
    */
   public function getIsDrupal() {
-    return $this->is_drupal;
+    return $this->testDrupal();
   }
 
   /**
