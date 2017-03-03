@@ -178,7 +178,7 @@ class DrupalCheck {
       }
     }
     else {
-      drupal_set_message(t('Problem processing @site. Error: @message', ['@site' => $this->url, '@message' => $r->getResponseField('code') . ': ' . $r->getResponseField('reason')]));
+//      drupal_set_message(t('Problem processing @site. Error: @message', ['@site' => $this->url, '@message' => $r->getResponseField('code') . ': ' . $r->getResponseField('reason')]));
     }
 
     $this->results['misc/drupal.js'] = 'failed';
