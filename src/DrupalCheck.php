@@ -54,16 +54,16 @@ class DrupalCheck {
    * @return bool
    */
   public function getIsDrupal() {
-    return $this->testDrupal();
+    return $this->is_drupal;
   }
 
   /**
-   * Alias of $this->getIsDrupal().
+   * Alias of $this->testDrupal().
    *
    * @return bool
    */
   public function isDrupal() {
-    return $this->getIsDrupal();
+    return $this->testDrupal();
   }
 
   /**
