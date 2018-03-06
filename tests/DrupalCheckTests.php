@@ -7,24 +7,26 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 
-class DrupalCheckTest extends TestCase {
+class DrupalCheckTest extends TestCase
+{
+    public function testisDrupal()
+    {
+        $site = new DrupalCheck('https://drupal.org');
+        $site->testDrupal();
 
-  public function testisDrupal() {
-    $site = new DrupalCheck('https://drupal.org');
-    $site->testDrupal();
+        $this->assertContains('passed', $site->results['expires header'], 'Expires header is Dries birthday');
+        $this->assertContains('passed', $site->results['drupal.settings'], 'Contains drupal.settings');
+        $this->assertContains('passed', $site->results['misc/drupal.js'], 'Contains misc/drupal.js');
+        $this->assertContains('passed', $site->results['x-generator header'], 'x-generator header is set to Drupal x');
+        $this->assertContains('passed', $site->results['x-drupal-cache header'], 'x-drupal-cache header exists');
+        $this->assertContains('passed', $site->results['body-meta-generator'], 'generator meta tag is set to Drupal x');
+    }
 
-    $this->assertContains('passed', $site->results['expires header'], 'Expires header is Dries birthday');
-    $this->assertContains('passed', $site->results['drupal.settings'], 'Contains drupal.settings');
-    $this->assertContains('passed', $site->results['misc/drupal.js'], 'Contains misc/drupal.js');
-    $this->assertContains('passed', $site->results['x-generator header'], 'x-generator header is set to Drupal x');
-    $this->assertContains('passed', $site->results['x-drupal-cache header'], 'x-drupal-cache header exists');
-    $this->assertContains('passed', $site->results['body-meta-generator'], 'generator meta tag is set to Drupal x');
-  }
+    public function testVersion()
+    {
+        $site = new DrupalCheck('https://drupal.org');
+        $site->testDrupal();
 
-  public function testVersion() {
-    $site = new DrupalCheck('https://drupal.org');
-    $site->testDrupal();
-
-    $this->assertContains('7', $site->getVersion());
-  }
+        $this->assertContains('7', $site->getVersion());
+    }
 }
